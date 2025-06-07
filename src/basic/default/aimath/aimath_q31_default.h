@@ -180,6 +180,84 @@ void aimath_q31_default_linear32(const aitensor_t *a, const aitensor_t *b, const
   */
 void aimath_q31_default_mat_mul(const aitensor_t *a, const aitensor_t *b, aitensor_t *result);
 
+/** @brief Performs a matrix multiplication of \link aimath_q31.h Q31 \endlink matrices a (transposed) and b
+  *
+  * Same operation as aimath_q31_default_mat_mul() but with a transposed a matrix.
+  *
+  * @f[
+  *  result = a^T \cdot b
+  * @f]
+  *
+  * Example:
+  * \code{.c}
+  * uint16_t a_shape[2] = {3, 2};
+  * aimath_q31_params_t a_params = {1, 0}; // {shift, zero point}
+  * int32_t a_data[3*2] = { 2, 4,
+  *                         6, 8,
+  *                        10,12};
+  * aitensor_t a = AITENSOR_2D_Q31(a_shape, &a_params, a_data);
+  *
+  * uint16_t b_shape[2] = {3, 1};
+  * aimath_q31_params_t b_params = {1, 0};
+  * int32_t b_data[3*1] = {1,
+  *                        0,
+  *                        0};
+  * aitensor_t b = AITENSOR_2D_Q31(b_shape, &b_params, b_data);
+  *
+  * uint16_t result_shape[2] = {2, 1};
+  * aimath_q31_params_t result_params = {1, 0};
+  * int32_t result_data[2*1];
+  * aitensor_t result = AITENSOR_2D_Q31(result_shape, &result_params, result_data);
+  *
+  * aimath_q31_default_mat_mul_at(&a, &b, &result);
+  *
+  * print_aitensor(&result);
+  * \endcode
+  *
+  * @param *a       Q31 matrix a (2D tensor of shape [K x N])
+  * @param *b       Q31 matrix b (2D tensor of shape [K x M])
+  * @param *result  Resulting Q31 matrix of the multiplication (2D tensor of shape [N x M])
+  */
+void aimath_q31_default_mat_mul_at(const aitensor_t *a, const aitensor_t *b, aitensor_t *result);
+
+/** @brief Performs a matrix multiplication of \link aimath_q31.h Q31 \endlink matrices a and b (transposed)
+  *
+  * Same operation as aimath_q31_default_mat_mul() but with a transposed b matrix.
+  *
+  * @f[
+  *  result = a \cdot b^T
+  * @f]
+  *
+  * Example:
+  * \code{.c}
+  * uint16_t a_shape[2] = {2, 3};
+  * aimath_q31_params_t a_params = {1, 0}; // {shift, zero point}
+  * int32_t a_data[2*3] = { 2, 4, 6,
+  *                         8,10,12};
+  * aitensor_t a = AITENSOR_2D_Q31(a_shape, &a_params, a_data);
+  *
+  * uint16_t b_shape[2] = {2, 3};
+  * aimath_q31_params_t b_params = {1, 0};
+  * int32_t b_data[2*3] = {1,0,0,
+  *                        0,1,0};
+  * aitensor_t b = AITENSOR_2D_Q31(b_shape, &b_params, b_data);
+  *
+  * uint16_t result_shape[2] = {2, 2};
+  * aimath_q31_params_t result_params = {1, 0};
+  * int32_t result_data[2*2];
+  * aitensor_t result = AITENSOR_2D_Q31(result_shape, &result_params, result_data);
+  *
+  * aimath_q31_default_mat_mul_bt(&a, &b, &result);
+  *
+  * print_aitensor(&result);
+  * \endcode
+  *
+  * @param *a       Q31 matrix a (2D tensor of shape [N x K])
+  * @param *b       Q31 matrix b (2D tensor of shape [M x K])
+  * @param *result  Resulting Q31 matrix of the multiplication (2D tensor of shape [N x M])
+  */
+void aimath_q31_default_mat_mul_bt(const aitensor_t *a, const aitensor_t *b, aitensor_t *result);
+
 /** @brief Performs an element wise multiplication of \link aimath_q31.h Q31 \endlink tensors a and b (Hadamard product)
   *
   * @f[
