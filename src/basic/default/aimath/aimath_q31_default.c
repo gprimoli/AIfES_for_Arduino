@@ -1463,6 +1463,110 @@ void aimath_q31_default_mse_loss_mean(const aitensor_t *predicted, const aitenso
 
         ((aiscalar_q31_t *)result)->value = (int32_t) ((acc >> output_shift) + z_result);
 	}
-	return;
+        return;
+}
+
+void aimath_q31_default_scale_by_batch_size(const aitensor_t *a, aitensor_t *result)
+{
+    float factor = 1.0f / (float) a->shape[0];
+    aiscalar_q31_t factor_q31 = AISCALAR_Q31(factor, 16, 0);
+    aimath_q31_default_scalar_mul(&factor_q31, a, result);
+    return;
+}
+
+void aimath_q31_default_categorical_crossentropy_sum(const aitensor_t *predicted_data, const aitensor_t *target_data, void *result)
+{
+    uint32_t i;
+    float loss = 0.0f;
+
+    uint16_t p_shift = ((aimath_q31_params_t *) predicted_data->tensor_params)->shift;
+    int32_t p_z = ((aimath_q31_params_t *) predicted_data->tensor_params)->zero_point;
+    uint16_t t_shift = ((aimath_q31_params_t *) target_data->tensor_params)->shift;
+    int32_t t_z = ((aimath_q31_params_t *) target_data->tensor_params)->zero_point;
+
+    for(i = 0; i < aimath_tensor_elements(predicted_data); i++)
+    {
+        float t = Q31_TO_FLOAT(((int32_t *) target_data->data)[i], t_shift, t_z);
+        if(t != 0.0f){
+            float p = Q31_TO_FLOAT(((int32_t *) predicted_data->data)[i], p_shift, p_z);
+            loss -= t * logf(p);
+        }
+    }
+
+    ((aiscalar_q31_t *) result)->value = FLOAT_TO_Q31(loss,
+                        ((aiscalar_q31_t *) result)->shift,
+                        ((aiscalar_q31_t *) result)->zero_point);
+    return;
+}
+
+void aimath_q31_default_categorical_crossentropy_mean(const aitensor_t *predicted_data, const aitensor_t *target_data, void *result)
+{
+    uint32_t i;
+    float loss = 0.0f;
+
+    uint16_t p_shift = ((aimath_q31_params_t *) predicted_data->tensor_params)->shift;
+    int32_t p_z = ((aimath_q31_params_t *) predicted_data->tensor_params)->zero_point;
+    uint16_t t_shift = ((aimath_q31_params_t *) target_data->tensor_params)->shift;
+    int32_t t_z = ((aimath_q31_params_t *) target_data->tensor_params)->zero_point;
+
+    for(i = 0; i < aimath_tensor_elements(predicted_data); i++)
+    {
+        float t = Q31_TO_FLOAT(((int32_t *) target_data->data)[i], t_shift, t_z);
+        if(t != 0.0f){
+            float p = Q31_TO_FLOAT(((int32_t *) predicted_data->data)[i], p_shift, p_z);
+            loss -= t * logf(p);
+        }
+    }
+
+    loss /= (float) predicted_data->shape[0];
+
+    ((aiscalar_q31_t *) result)->value = FLOAT_TO_Q31(loss,
+                        ((aiscalar_q31_t *) result)->shift,
+                        ((aiscalar_q31_t *) result)->zero_point);
+    return;
+}
+
+void aimath_q31_default_categorical_crossentropy_sum_sparse8(const aitensor_t *predicted_data, const aitensor_t *target_data, void *result)
+{
+    uint32_t i, index;
+    float loss = 0.0f;
+
+    uint16_t p_shift = ((aimath_q31_params_t *) predicted_data->tensor_params)->shift;
+    int32_t p_z = ((aimath_q31_params_t *) predicted_data->tensor_params)->zero_point;
+
+    for(i = 0; i < target_data->shape[0]; i++)
+    {
+        index = i * predicted_data->shape[1] + ((uint8_t *) target_data->data)[i];
+        float p = Q31_TO_FLOAT(((int32_t *) predicted_data->data)[index], p_shift, p_z);
+        loss -= logf(p);
+    }
+
+    ((aiscalar_q31_t *) result)->value = FLOAT_TO_Q31(loss,
+                        ((aiscalar_q31_t *) result)->shift,
+                        ((aiscalar_q31_t *) result)->zero_point);
+    return;
+}
+
+void aimath_q31_default_categorical_crossentropy_mean_sparse8(const aitensor_t *predicted_data, const aitensor_t *target_data, void *result)
+{
+    uint32_t i, index;
+    float loss = 0.0f;
+
+    uint16_t p_shift = ((aimath_q31_params_t *) predicted_data->tensor_params)->shift;
+    int32_t p_z = ((aimath_q31_params_t *) predicted_data->tensor_params)->zero_point;
+
+    for(i = 0; i < target_data->shape[0]; i++)
+    {
+        index = i * predicted_data->shape[1] + ((uint8_t *) target_data->data)[i];
+        float p = Q31_TO_FLOAT(((int32_t *) predicted_data->data)[index], p_shift, p_z);
+        loss -= logf(p);
+    }
+
+    loss /= (float) predicted_data->shape[0];
+
+    ((aiscalar_q31_t *) result)->value = FLOAT_TO_Q31(loss,
+                        ((aiscalar_q31_t *) result)->shift,
+                        ((aiscalar_q31_t *) result)->zero_point);
+    return;
 }
 

@@ -1314,5 +1314,15 @@ void aimath_q31_default_mse_gradients_mean(const aitensor_t *predicted, const ai
 void aimath_q31_default_mse_loss_sum(const aitensor_t *predicted, const aitensor_t *target, void *result);
 
 void aimath_q31_default_mse_loss_mean(const aitensor_t *predicted, const aitensor_t *target, void *result);
+
+void aimath_q31_default_categorical_crossentropy_sum(const aitensor_t *predicted_data, const aitensor_t *target_data, void *result);
+
+void aimath_q31_default_categorical_crossentropy_mean(const aitensor_t *predicted_data, const aitensor_t *target_data, void *result);
+
+void aimath_q31_default_categorical_crossentropy_sum_sparse8(const aitensor_t *predicted_data, const aitensor_t *target_data, void *result);
+
+void aimath_q31_default_categorical_crossentropy_mean_sparse8(const aitensor_t *predicted_data, const aitensor_t *target_data, void *result);
+
+void aimath_q31_default_scale_by_batch_size(const aitensor_t *a, aitensor_t *result);
 #endif // AIMATH_Q31_DEFAULT
 
