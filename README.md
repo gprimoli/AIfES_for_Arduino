@@ -138,7 +138,7 @@ The number of neurons and the number of different layers can be adapted individu
 | Loss                     | f32     | q31     | q7      |
 |--------------------------|---------|---------|---------|
 | Mean Squared Error (MSE) | ailoss_mse_f32_default() | ailoss_mse_q31_default() |         |
-| Crossentropy | ailoss_crossentropy_f32_default()<br>ailoss_crossentropy_sparse8_f32_default() |         |         |
+| Crossentropy | ailoss_crossentropy_f32_default()<br>ailoss_crossentropy_sparse8_f32_default() | ailoss_crossentropy_q31_default()<br>ailoss_crossentropy_sparse8_q31_default() |         |
 
 **Optimizer:**
 
