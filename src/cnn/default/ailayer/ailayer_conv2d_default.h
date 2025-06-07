@@ -28,6 +28,8 @@
 
 #include "cnn/default/aimath/aimath_cnn_f32_default.h"
 #include "basic/default/aimath/aimath_f32_default.h"
+#include "cnn/default/aimath/aimath_cnn_q31_default.h"
+#include "basic/default/aimath/aimath_q31_default.h"
 
 #define HW(h, w)        {h, w}
 
@@ -35,8 +37,13 @@
             {{0,},filters,kernel_size,stride,dilation,padding,0,{0,0,0,0,(float *) weights},{0,0,0,0,(float *) bias}}
 #define AILAYER_CONV2D_F32_A(filters, kernel_size, stride, dilation, padding) \
             {{0,},filters,kernel_size,stride,dilation,padding,0,{0,0,0,0,0},{0,0,0,0,0}}
+#define AILAYER_CONV2D_Q31_M(filters, kernel_size, stride, dilation, padding, weights, bias) \
+            {{0,},filters,kernel_size,stride,dilation,padding,0,{0,0,0,0,(int32_t *) weights},{0,0,0,0,(int32_t *) bias}}
+#define AILAYER_CONV2D_Q31_A(filters, kernel_size, stride, dilation, padding) \
+            {{0,},filters,kernel_size,stride,dilation,padding,0,{0,0,0,0,0},{0,0,0,0,0}}
 
 typedef struct ailayer_conv2d   ailayer_conv2d_f32_t;
+typedef struct ailayer_conv2d   ailayer_conv2d_q31_t;
 
 /// @brief Initializes and connect a \link ailayer_conv2d.h Conv2D layer \endlink with the \link aimath_f32.h F32 \endlink default implementation
 ///
@@ -192,6 +199,32 @@ ailayer_t *ailayer_conv2d_hwc_f32_default(ailayer_conv2d_f32_t *layer, ailayer_t
  * @param *self  The layer structure
  */
 void ailayer_conv2d_init_params_f32_default(ailayer_t *self);
+
+/// @brief Initializes and connect a \link ailayer_conv2d.h Conv2D layer \endlink with the \link aimath_q31.h Q31 \endlink default implementation
+///
+/// @param *layer        The layer structure to initialize.
+/// @param *input_layer  The prior layer.
+/// @return              The (successfully) initialized layer structure.
+ailayer_t *ailayer_conv2d_q31_default(ailayer_conv2d_q31_t *layer, ailayer_t *input_layer);
+
+/** @brief Initializes and connect a \link ailayer_conv2d.h Conv2D layer \endlink (channels first) with the \link aimath_q31.h Q31 \endlink default implementation
+ */
+ailayer_t *ailayer_conv2d_cfirst_q31_default(ailayer_conv2d_q31_t *layer, ailayer_t *input_layer);
+
+/** @brief Initializes and connect a \link ailayer_conv2d.h Conv2D layer \endlink (channels first) with the \link aimath_q31.h Q31 \endlink default implementation
+ */
+ailayer_t *ailayer_conv2d_chw_q31_default(ailayer_conv2d_q31_t *layer, ailayer_t *input_layer);
+
+/** @brief Initializes and connect a \link ailayer_conv2d.h Conv2D layer \endlink (channels last) with the \link aimath_q31.h Q31 \endlink default implementation
+ */
+ailayer_t *ailayer_conv2d_clast_q31_default(ailayer_conv2d_q31_t *layer, ailayer_t *input_layer);
+
+/** @brief Initializes and connect a \link ailayer_conv2d.h Conv2D layer \endlink (channels last) with the \link aimath_q31.h Q31 \endlink default implementation
+ */
+ailayer_t *ailayer_conv2d_hwc_q31_default(ailayer_conv2d_q31_t *layer, ailayer_t *input_layer);
+
+/// @brief \link aimath_q31.h Q31 \endlink default implementation of the ailayer.init_params function for the Conv2D layer
+void ailayer_conv2d_init_params_q31_default(ailayer_t *self);
 
 #endif // AILAYER_CONV2D_DEFAULT
 

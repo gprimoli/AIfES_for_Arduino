@@ -99,3 +99,68 @@ void ailayer_conv2d_init_params_f32_default(ailayer_t *self)
 
 	return;
 }
+
+ailayer_t *ailayer_conv2d_q31_default(ailayer_conv2d_q31_t *layer, ailayer_t *input_layer)
+{
+    layer->base.result.dtype = aiq31;
+    layer->base.deltas.dtype = aiq31;
+    layer->weights.dtype = aiq31;
+    layer->bias.dtype = aiq31;
+
+    layer->base.calc_result_tensor_params = 0;
+    layer->base.init_params = ailayer_conv2d_init_params_q31_default;
+
+    layer->conv2d_fwd = aimath_q31_default_conv2d_fwd;
+    layer->conv2d_bwd = aimath_q31_default_conv2d_bwd;
+    layer->conv2d_bwd_full = 0;
+    layer->tensor_add = aimath_q31_default_tensor_add;
+    layer->sum_channelwise = aimath_q31_default_sum_channelwise;
+
+    return ailayer_conv2d(layer, input_layer);
+}
+
+ailayer_t *ailayer_conv2d_cfirst_q31_default(ailayer_conv2d_q31_t *layer, ailayer_t *input_layer)
+{
+    layer->channel_axis = AIFES_CHANNELS_FIRST;
+    return ailayer_conv2d_q31_default(layer, input_layer);
+}
+
+ailayer_t *ailayer_conv2d_chw_q31_default(ailayer_conv2d_q31_t *layer, ailayer_t *input_layer)
+{
+    layer->channel_axis = AIFES_CHANNELS_FIRST;
+    return ailayer_conv2d_q31_default(layer, input_layer);
+}
+
+ailayer_t *ailayer_conv2d_clast_q31_default(ailayer_conv2d_q31_t *layer, ailayer_t *input_layer)
+{
+    layer->channel_axis = AIFES_CHANNELS_LAST;
+    return ailayer_conv2d_q31_default(layer, input_layer);
+}
+
+ailayer_t *ailayer_conv2d_hwc_q31_default(ailayer_conv2d_q31_t *layer, ailayer_t *input_layer)
+{
+    layer->channel_axis = AIFES_CHANNELS_LAST;
+    return ailayer_conv2d_q31_default(layer, input_layer);
+}
+
+void ailayer_conv2d_init_params_q31_default(ailayer_t *self)
+{
+    ailayer_conv2d_t *layer = (ailayer_conv2d_t *) (self->layer_configuration);
+    int8_t cin_axis = layer->channel_axis;
+    int8_t cout_axis = 0;
+
+    if(self->output_layer != 0){
+        if(self->output_layer->layer_type == ailayer_relu_type
+           || self->output_layer->layer_type == ailayer_leaky_relu_type
+           || self->output_layer->layer_type == ailayer_elu_type){
+            aimath_q31_default_init_he_uniform_cdim(&layer->weights, cout_axis);
+        } else {
+            aimath_q31_default_init_glorot_uniform_cdim(&layer->weights, cin_axis, cout_axis);
+        }
+    } else {
+        aimath_q31_default_init_glorot_uniform_cdim(&layer->weights, cin_axis, cout_axis);
+    }
+
+    aimath_q31_default_zero_tensor(&layer->bias);
+    return;
+}
