@@ -326,6 +326,30 @@ void aimath_q31_default_multiply(const aitensor_t *a, const aitensor_t *b, aiten
   */
 void aimath_q31_default_scalar_mul(const void *scalar, const aitensor_t *a, aitensor_t *result);
 
+/** @brief Performs an element wise addition of a scalar to a \link aimath_q31.h Q31 \endlink tensor
+ *
+ * @f[
+ *  result = scalar + a
+ * @f]
+ *
+ * @param *scalar  Scalar (type aiscalar_q31_t)
+ * @param *a       Q31 tensor a (N-D tensor)
+ * @param *result  Resulting Q31 tensor of the scalar addition (N-D tensor)
+ */
+void aimath_q31_default_scalar_add(const void *scalar, const aitensor_t *a, aitensor_t *result);
+
+/** @brief Performs an element wise division of \link aimath_q31.h Q31 \endlink tensors a and b
+ *
+ * @f[
+ *  result_i = a_i \div b_i
+ * @f]
+ *
+ * @param *a       Q31 tensor a (N-D tensor)
+ * @param *b       Q31 tensor b (N-D tensor)
+ * @param *result  Resulting Q31 tensor of the element wise division (N-D tensor)
+ */
+void aimath_q31_default_divide(const aitensor_t *a, const aitensor_t *b, aitensor_t *result);
+
 /** @brief Performs an element wise addition of \link aimath_q31.h Q31 \endlink tensors a and b with different shifts
   *
   * @f[

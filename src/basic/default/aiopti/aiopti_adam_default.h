@@ -31,12 +31,13 @@
 
 #include "basic/default/aimath/aimath_f32_default.h"
 #include "basic/default/aimath/aimath_q7_default.h"
+#include "basic/default/aimath/aimath_q31_default.h"
 
 #define AIOPTI_ADAM_F32(learning_rate, beta1, beta2, eps) {{{0,},},learning_rate, beta1, beta2, eps}
 #define AIOPTI_ADAM_Q31(learning_rate, beta1, beta2, eps) {{{0,},},learning_rate, beta1, beta2, eps}
 
 typedef struct aiopti_adam_f32 	aiopti_adam_f32_t;
-//typedef struct aiopti_adam_q31 	aiopti_adam_q31_t;
+typedef struct aiopti_adam_q31 	aiopti_adam_q31_t;
 
 /** @brief Data-type specific \link aiopti_adam.h Adam optimizer \endlink struct for \link aimath_f32.h F32 \endlink
  *
@@ -69,6 +70,30 @@ struct aiopti_adam_f32 {
 	aiscalar_f32_t one_minus_beta2; /**< Storage for aiopti_adam.one_minus_beta2 scalar in F32 */
 	aiscalar_f32_t lrt; /**< Storage for aiopti_adam.lrt scalar in F32 */
 	///@}
+};
+
+/** @brief Data-type specific \link aiopti_adam.h Adam optimizer \endlink struct for \link aimath_q31.h Q31 \endlink
+ *
+ * Adds data fields for the learning rate and the configuration values in \link aimath_q31.h Q31 \endlink to the base implementation.
+ */
+struct aiopti_adam_q31 {
+        aiopti_adam_t base; /**< Inherited field members from general optimizer struct. */
+
+        ///@{
+        aiscalar_q31_t learning_rate; /**< Storage for aiopti.learning_rate scalar in Q31 */
+
+        aiscalar_q31_t beta1; /**< Storage for aiopti_adam.beta1 scalar in Q31 */
+        aiscalar_q31_t beta2; /**< Storage for aiopti_adam.beta2 scalar in Q31 */
+        aiscalar_q31_t eps; /**< Storage for aiopti_adam.eps scalar in Q31 */
+        ///@}
+
+        ///@{
+        aiscalar_q31_t beta1t; /**< Storage for aiopti_adam.beta1t scalar in Q31 */
+        aiscalar_q31_t beta2t; /**< Storage for aiopti_adam.beta2t scalar in Q31 */
+        aiscalar_q31_t one_minus_beta1; /**< Storage for aiopti_adam.one_minus_beta1 scalar in Q31 */
+        aiscalar_q31_t one_minus_beta2; /**< Storage for aiopti_adam.one_minus_beta2 scalar in Q31 */
+        aiscalar_q31_t lrt; /**< Storage for aiopti_adam.lrt scalar in Q31 */
+        ///@}
 };
 
 
@@ -141,5 +166,24 @@ void aiopti_adam_f32_default_begin_step(aiopti_t *self);
  * @param *self  The optimizer structure
  */
 void aiopti_adam_f32_default_end_step(aiopti_t *self);
+
+/** @brief Initializes an \link aiopti_adam.h Adam optimizer \endlink with the \link aimath_q31.h Q31 \endlink default implementation
+ *
+ * @param *opti    The optimizer structure to initialize.
+ * @return         The (successfully) initialized optimizer structure.
+ */
+aiopti_t *aiopti_adam_q31_default(aiopti_adam_q31_t *opti);
+
+/** @brief \link aimath_q31.h Q31 \endlink default implementation of the aiopti.begin_step function for ADAM
+ *
+ * @param *self  The optimizer structure
+ */
+void aiopti_adam_q31_default_begin_step(aiopti_t *self);
+
+/** @brief \link aimath_q31.h Q31 \endlink default implementation of the aiopti.end_step function for ADAM
+ *
+ * @param *self  The optimizer structure
+ */
+void aiopti_adam_q31_default_end_step(aiopti_t *self);
 
 #endif // AIOPTI_ADAM_DEFAULT
