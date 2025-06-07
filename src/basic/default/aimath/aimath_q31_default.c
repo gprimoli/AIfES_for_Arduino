@@ -378,7 +378,49 @@ void aimath_q31_default_scalar_mul(const void *scalar, const aitensor_t *a, aite
             ((int32_t *) result->data)[i] = (int32_t) ((acc >> output_shift) + z_result);
         }
 	}
-	return;
+        return;
+}
+
+void aimath_q31_default_scalar_add(const void *scalar, const aitensor_t *a, aitensor_t *result)
+{
+    uint32_t i;
+    const aiscalar_q31_t *s = scalar;
+    uint16_t s_shift = s->shift;
+    int32_t s_z = s->zero_point;
+    uint16_t a_shift = ((aimath_q31_params_t *) a->tensor_params)->shift;
+    int32_t a_z = ((aimath_q31_params_t *) a->tensor_params)->zero_point;
+    uint16_t r_shift = ((aimath_q31_params_t *) result->tensor_params)->shift;
+    int32_t r_z = ((aimath_q31_params_t *) result->tensor_params)->zero_point;
+
+    for(i = 0; i < aimath_tensor_elements(a); i++){
+        float fa = ((int32_t *)a->data)[i] - a_z;
+        fa = fa / (float)((int64_t)1 << a_shift);
+        float fs = (s->value - s_z) / (float)((int64_t)1 << s_shift);
+        float fr = fa + fs;
+        ((int32_t *)result->data)[i] = (int32_t)((fr * ((int64_t)1 << r_shift)) + r_z + (fr >= 0 ? 0.5f : -0.5f));
+    }
+    return;
+}
+
+void aimath_q31_default_divide(const aitensor_t *a, const aitensor_t *b, aitensor_t *result)
+{
+    uint32_t i;
+    uint16_t a_shift = ((aimath_q31_params_t *) a->tensor_params)->shift;
+    int32_t a_z = ((aimath_q31_params_t *) a->tensor_params)->zero_point;
+    uint16_t b_shift = ((aimath_q31_params_t *) b->tensor_params)->shift;
+    int32_t b_z = ((aimath_q31_params_t *) b->tensor_params)->zero_point;
+    uint16_t r_shift = ((aimath_q31_params_t *) result->tensor_params)->shift;
+    int32_t r_z = ((aimath_q31_params_t *) result->tensor_params)->zero_point;
+
+    for(i = 0; i < aimath_tensor_elements(a); i++){
+        float fa = ((int32_t *)a->data)[i] - a_z;
+        fa = fa / (float)((int64_t)1 << a_shift);
+        float fb = ((int32_t *)b->data)[i] - b_z;
+        fb = fb / (float)((int64_t)1 << b_shift);
+        float fr = fa / fb;
+        ((int32_t *)result->data)[i] = (int32_t)((fr * ((int64_t)1 << r_shift)) + r_z + (fr >= 0 ? 0.5f : -0.5f));
+    }
+    return;
 }
 
 /**

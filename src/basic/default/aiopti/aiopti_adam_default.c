@@ -61,6 +61,50 @@ aiopti_t *aiopti_adam_f32_default(aiopti_adam_f32_t *opti)
 	return aiopti_adam(&opti->base);
 }
 
+aiopti_t *aiopti_adam_q31_default(aiopti_adam_q31_t *opti)
+{
+        opti->base.base.dtype = aiq31;
+
+        opti->base.base.learning_rate = &opti->learning_rate;
+
+        opti->base.beta1 = &opti->beta1;
+        opti->base.beta2 = &opti->beta2;
+        opti->base.eps = &opti->eps;
+
+        opti->base.beta1t = &opti->beta1t;
+        opti->base.beta2t = &opti->beta2t;
+        opti->base.one_minus_beta1 = &opti->one_minus_beta1;
+        opti->base.one_minus_beta2 = &opti->one_minus_beta2;
+        opti->base.lrt = &opti->lrt;
+
+        opti->beta1t = opti->beta1;
+        opti->beta2t = opti->beta2;
+        opti->one_minus_beta1.value = ((int32_t)1 << opti->beta1.shift) + opti->beta1.zero_point - opti->beta1.value;
+        opti->one_minus_beta1.shift = opti->beta1.shift;
+        opti->one_minus_beta1.zero_point = opti->beta1.zero_point;
+        opti->one_minus_beta2.value = ((int32_t)1 << opti->beta2.shift) + opti->beta2.zero_point - opti->beta2.value;
+        opti->one_minus_beta2.shift = opti->beta2.shift;
+        opti->one_minus_beta2.zero_point = opti->beta2.zero_point;
+        opti->lrt.shift = opti->learning_rate.shift;
+        opti->lrt.zero_point = opti->learning_rate.zero_point;
+        opti->lrt.value = opti->learning_rate.value;
+
+        opti->base.base.begin_step = aiopti_adam_q31_default_begin_step;
+        opti->base.base.end_step = aiopti_adam_q31_default_end_step;
+
+        opti->base.multiply = aimath_q31_default_multiply;
+        opti->base.divide = aimath_q31_default_divide;
+        opti->base.tensor_add = aimath_q31_default_tensor_add_same_shift;
+        opti->base.tensor_sub = aimath_q31_default_tensor_sub_different_shift;
+        opti->base.scalar_mul = aimath_q31_default_scalar_mul;
+        opti->base.scalar_add = aimath_q31_default_scalar_add;
+        opti->base.sqrt = aimath_q31_default_tensor_sqrt;
+
+        opti->base.zero_tensor = aimath_q31_default_zero_tensor;
+
+        return aiopti_adam(&opti->base);
+}
+
 void aiopti_adam_f32_default_begin_step(aiopti_t *self)
 {
 	aiopti_adam_t *opti = (aiopti_adam_t *)(self->optimizer_configuration);
@@ -80,5 +124,34 @@ void aiopti_adam_f32_default_end_step(aiopti_t *self)
 	*((float *) opti->one_minus_beta1) = 1.0f - *((float *) opti->beta1);
 	*((float *) opti->one_minus_beta2) = 1.0f - *((float *) opti->beta2);
 
-	return;
+        return;
+}
+
+void aiopti_adam_q31_default_begin_step(aiopti_t *self)
+{
+        aiopti_adam_q31_t *opti = (aiopti_adam_q31_t *)(self->optimizer_configuration);
+
+        float lr = Q31_TO_FLOAT(opti->learning_rate.value, opti->learning_rate.shift, opti->learning_rate.zero_point);
+        float b1t = Q31_TO_FLOAT(opti->beta1t.value, opti->beta1t.shift, opti->beta1t.zero_point);
+        float b2t = Q31_TO_FLOAT(opti->beta2t.value, opti->beta2t.shift, opti->beta2t.zero_point);
+        float lr_t = lr * sqrtf(1.0f - b2t) / (1.0f - b1t);
+        opti->lrt.value = FLOAT_TO_Q31(lr_t, opti->lrt.shift, opti->lrt.zero_point);
+        return;
+}
+
+void aiopti_adam_q31_default_end_step(aiopti_t *self)
+{
+        aiopti_adam_q31_t *opti = (aiopti_adam_q31_t *)(self->optimizer_configuration);
+
+        float b1t = Q31_TO_FLOAT(opti->beta1t.value, opti->beta1t.shift, opti->beta1t.zero_point) *
+                     Q31_TO_FLOAT(opti->beta1.value, opti->beta1.shift, opti->beta1.zero_point);
+        float b2t = Q31_TO_FLOAT(opti->beta2t.value, opti->beta2t.shift, opti->beta2t.zero_point) *
+                     Q31_TO_FLOAT(opti->beta2.value, opti->beta2.shift, opti->beta2.zero_point);
+        opti->beta1t.value = FLOAT_TO_Q31(b1t, opti->beta1t.shift, opti->beta1t.zero_point);
+        opti->beta2t.value = FLOAT_TO_Q31(b2t, opti->beta2t.shift, opti->beta2t.zero_point);
+
+        opti->one_minus_beta1.value = ((int32_t)1 << opti->beta1.shift) + opti->beta1.zero_point - opti->beta1.value;
+        opti->one_minus_beta2.value = ((int32_t)1 << opti->beta2.shift) + opti->beta2.zero_point - opti->beta2.value;
+
+        return;
 }

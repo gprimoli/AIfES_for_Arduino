@@ -145,7 +145,7 @@ The number of neurons and the number of different layers can be adapted individu
 | Optimizer                         | f32     | q31     | q7      |
 |-----------------------------------|---------|---------|---------|
 | Stochastic Gradient Descent (SGD) | aiopti_sgd_f32_default() | aiopti_sgd_q31_default() |         |
-| Adam | aiopti_adam_f32_default() |         |         |
+| Adam | aiopti_adam_f32_default() | aiopti_adam_q31_default() |         |
 
 ## Installation
 You can download and install AIfES® (search for "aifes") with the Arduino library manager.
