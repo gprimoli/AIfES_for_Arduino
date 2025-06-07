@@ -112,7 +112,147 @@ void aimath_q31_default_linear32(const aitensor_t *a, const aitensor_t *b, const
 }
 
 void aimath_q31_default_mat_mul(const aitensor_t *a, const aitensor_t *b, aitensor_t *result){
-	aimath_q31_default_linear32(a, b, 0, result);
+        aimath_q31_default_linear32(a, b, 0, result);
+}
+
+void aimath_q31_default_mat_mul_at(const aitensor_t *a, const aitensor_t *b, aitensor_t *result){
+        uint16_t i, j, k;
+        int64_t sum, acc;
+        uint16_t a_shift = ((aimath_q31_params_t *) a->tensor_params)->shift;
+        uint16_t b_shift = ((aimath_q31_params_t *) b->tensor_params)->shift;
+        uint16_t result_shift = ((aimath_q31_params_t *) result->tensor_params)->shift;
+
+        int64_t z_a = (int64_t) ((aimath_q31_params_t *) a->tensor_params)->zero_point;
+        int64_t z_b = (int64_t) ((aimath_q31_params_t *) b->tensor_params)->zero_point;
+        int64_t z_result = (int64_t) ((aimath_q31_params_t *) result->tensor_params)->zero_point;
+
+        uint16_t output_shift, final_shift;
+        if(result_shift > a_shift + b_shift){
+        output_shift = 0;
+        final_shift = result_shift - a_shift - b_shift;
+        } else {
+        output_shift = a_shift + b_shift - result_shift;
+        final_shift = 0;
+        }
+
+        int32_t *a_data = (int32_t *) a->data;
+        int32_t *b_data = (int32_t *) b->data;
+        int32_t *result_data = (int32_t *) result->data;
+
+#ifdef AIDEBUG_SHAPE_CHECKS
+        if(a->shape[0] != b->shape[0])
+        {
+                AILOG_E(aistring_error_q31_linear32_1);
+                return;
+        }
+        if(a->shape[1] != result->shape[0] || b->shape[1] != result->shape[1])
+        {
+                AILOG_E(aistring_error_q31_linear32_2);
+                return;
+        }
+#endif
+
+        for(i = 0; i < a->shape[1]; i++)
+        {
+                for(j = 0; j < b->shape[1]; j++)
+                {
+                        sum = 0;
+                        for(k = 0; k < a->shape[0]; k++)
+                        {
+                                sum += (((int64_t) a_data[k*a->shape[1] + i] * (int64_t) b_data[k*b->shape[1] + j]) >> output_shift) << final_shift;
+                        }
+                        if(z_a != 0){
+                                acc = 0;
+                                for(k = 0; k < a->shape[0]; k++){
+                                        acc += (int64_t) b_data[k*b->shape[1] + j];
+                                }
+                                sum -= ((z_a * acc) >> output_shift) << final_shift;
+                        }
+                        if(z_b != 0){
+                                acc = 0;
+                                for(k = 0; k < a->shape[0]; k++){
+                                        acc += (int64_t) a_data[k*a->shape[1] + i];
+                                }
+                                sum -= ((z_b * acc) >> output_shift) << final_shift;
+                        }
+                        if(z_a != 0 && z_b != 0){
+                                sum += ((a->shape[0] * z_a * z_b) >> output_shift) << final_shift;
+                        }
+                        result_data[i*result->shape[1] + j] = (int32_t)(sum + z_result);
+                }
+        }
+
+        return;
+}
+
+void aimath_q31_default_mat_mul_bt(const aitensor_t *a, const aitensor_t *b, aitensor_t *result){
+        uint16_t i, j, k;
+        int64_t sum, acc;
+        uint16_t a_shift = ((aimath_q31_params_t *) a->tensor_params)->shift;
+        uint16_t b_shift = ((aimath_q31_params_t *) b->tensor_params)->shift;
+        uint16_t result_shift = ((aimath_q31_params_t *) result->tensor_params)->shift;
+
+        int64_t z_a = (int64_t) ((aimath_q31_params_t *) a->tensor_params)->zero_point;
+        int64_t z_b = (int64_t) ((aimath_q31_params_t *) b->tensor_params)->zero_point;
+        int64_t z_result = (int64_t) ((aimath_q31_params_t *) result->tensor_params)->zero_point;
+
+        uint16_t output_shift, final_shift;
+        if(result_shift > a_shift + b_shift){
+        output_shift = 0;
+        final_shift = result_shift - a_shift - b_shift;
+        } else {
+        output_shift = a_shift + b_shift - result_shift;
+        final_shift = 0;
+        }
+
+        int32_t *a_data = (int32_t *) a->data;
+        int32_t *b_data = (int32_t *) b->data;
+        int32_t *result_data = (int32_t *) result->data;
+
+#ifdef AIDEBUG_SHAPE_CHECKS
+        if(a->shape[1] != b->shape[1])
+        {
+                AILOG_E(aistring_error_q31_linear32_1);
+                return;
+        }
+        if(a->shape[0] != result->shape[0] || b->shape[0] != result->shape[1])
+        {
+                AILOG_E(aistring_error_q31_linear32_2);
+                return;
+        }
+#endif
+
+        for(i = 0; i < a->shape[0]; i++)
+        {
+                for(j = 0; j < b->shape[0]; j++)
+                {
+                        sum = 0;
+                        for(k = 0; k < a->shape[1]; k++)
+                        {
+                                sum += (((int64_t) a_data[i*a->shape[1] + k] * (int64_t) b_data[j*b->shape[1] + k]) >> output_shift) << final_shift;
+                        }
+                        if(z_a != 0){
+                                acc = 0;
+                                for(k = 0; k < a->shape[1]; k++){
+                                        acc += (int64_t) b_data[j*b->shape[1] + k];
+                                }
+                                sum -= ((z_a * acc) >> output_shift) << final_shift;
+                        }
+                        if(z_b != 0){
+                                acc = 0;
+                                for(k = 0; k < a->shape[1]; k++){
+                                        acc += (int64_t) a_data[i*a->shape[1] + k];
+                                }
+                                sum -= ((z_b * acc) >> output_shift) << final_shift;
+                        }
+                        if(z_a != 0 && z_b != 0){
+                                sum += ((a->shape[1] * z_a * z_b) >> output_shift) << final_shift;
+                        }
+                        result_data[i*result->shape[1] + j] = (int32_t)(sum + z_result);
+                }
+        }
+
+        return;
 }
 
 // ToDo: Check zeropoint correction

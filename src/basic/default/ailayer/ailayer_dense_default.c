@@ -90,10 +90,11 @@ ailayer_t *ailayer_dense_q31_default(ailayer_dense_q31_t *layer, ailayer_t *inpu
 	layer->base.calc_result_tensor_params = 0;
 	layer->base.init_params = ailayer_dense_init_params_q31_default;
 
-	layer->linear = aimath_q31_default_linear32;
-	layer->mat_mul_at = aimath_q31_default_mat_mul;
-	layer->tensor_add = aimath_q31_default_tensor_add_different_shift;
-	layer->sum_channelwise = aimath_q31_default_sum_channelwise;
+        layer->linear = aimath_q31_default_linear32;
+        layer->mat_mul_at = aimath_q31_default_mat_mul_at;
+        layer->mat_mul_bt = aimath_q31_default_mat_mul_bt;
+        layer->tensor_add = aimath_q31_default_tensor_add_different_shift;
+        layer->sum_channelwise = aimath_q31_default_sum_channelwise;
 
 	return ailayer_dense(layer, input_layer);
 }
